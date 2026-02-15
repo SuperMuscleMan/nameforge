@@ -1,0 +1,44 @@
+# 系统配置
+system:
+  log_level: DEBUG
+  log_file: logs/app.log
+  checkpoint_file: .checkpoint
+
+# API 配置
+api:
+  provider: glm  # glm | openai | claude
+  glm:
+    # 智谱 
+    # api_key: 99bd49bd7b514d979bfdccafdcd93a90.seVj2awdbP9jNldR # 环境变量或直接配置
+    # org_id: null
+    # base_url: https://open.bigmodel.cn/api/paas/v4/chat/completions
+    # model: glm-4.7-flash
+
+    #  魔塔
+    api_key: ms-555cfc6e-1f0c-4335-9e8c-0dd2946cabb4 # 环境变量或直接配置
+    org_id: null
+    base_url: https://api-inference.modelscope.cn/v1/chat/completions
+    model: deepseek-ai/DeepSeek-V3.2
+  timeout: 900
+  max_retries: 3
+  retry_wait_base: 10  # 秒
+
+# Redis 配置
+redis:
+  url: redis://localhost:6379
+  db: 0
+  fallback_to_memory: true  # Redis不可用时降级到内存
+
+# 储存配置
+storage:
+  base_dir: data
+  enable_backup: false
+  backup_interval_hours: 24
+
+# 敏感词配置
+sensitive:
+  enabled: true
+  base_dict_path: data/sensitive_words.txt
+  custom_blacklist_path: config/custom_blacklist.txt
+  filter_mode: remove  # remove | replace | tag
+  replacement_char: "*"

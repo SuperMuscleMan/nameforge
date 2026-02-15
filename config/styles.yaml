@@ -1,0 +1,49 @@
+
+# Prompt 模板
+prompts:
+  # 全局默认模板
+  default_template: |
+    你是一个专业的游戏昵称生成器。请按以下要求生成昵称：
+    
+    **生成要求：**
+    - 风格特征：{style_description}
+    - 昵称长度：{min_len}-{max_len}个字符
+    - 字符集：{charset}
+    - 数量：{count}个
+
+    **约束：**
+    - 返回的所有昵称必须符合上述风格特征、长度和字符集要求、且不可重复！！
+    - 要求高质量、可爱、软萌、轻松、无攻击性、无暴力、简洁好记、不生僻。
+    - 禁止包含敏感词、政治内容、宗教内容、暴力内容、色情内容、歧视性内容等。
+    - 严谨遵守以上要求，生成符合风格的昵称，返回前请做检查！！
+    
+    **返回结构：**
+    以 JSON 数组格式返回，不要包含任何 Markdown 代码块和文字解释，严格返回: ["词根1", "词根2", ...]
+
+# 生成数量
+generation: 
+  count: 5000
+  style: 二次元
+
+# 风格定义
+styles:
+  古风:
+    description: "古代诗词文化风格，参考诗经楚辞，体现诗意典雅"
+    length_min: 2
+    length_max: 6
+    charset: "中文"
+    enabled: true
+  
+  二次元:
+    description: "ACG二次元风格，含有可爱、萌、神秘、日本风属性"
+    length_min: 2
+    length_max: 6
+    charset: "中文"
+    enabled: true
+  
+  赛博朋克:
+    description: "科幻未来感，机械冷酷风格，充满科技属性"
+    length_min: 2
+    length_max: 6
+    charset: "中文"
+    enabled: true
