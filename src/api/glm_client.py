@@ -31,14 +31,11 @@ class GLMClient:
         max_retries: int = 3,
         retry_wait_base: int = 2,
     ):
-        self.api_key=config_manager.get_system_config("api.glm.api_key")
-        model=config_manager.get_system_config("api.glm.model")
-        timeout=config_manager.get_system_config("api.timeout", 30)
-        base_url=config_manager.get_system_config("api.glm.base_url")
         """
         初始化GLM客户端
 
         Args:
+            config_manager: 配置管理器（可选，用于从配置读取API设置）
             api_key: API Key（如果为None，从环境变量GLM_API_KEY读取）
             org_id: 组织ID（可选）
             base_url: API 端点地址
@@ -47,17 +44,27 @@ class GLMClient:
             max_retries: 最大重试次数
             retry_wait_base: 重试等待基数（秒），实际等待为 base * (2^n)
         """
-        if not self.api_key:
-           self.api_key = api_key or os.getenv("GLM_API_KEY")
+        # 优先从config_manager读取配置
+        if config_manager:
+            self.api_key = config_manager.get_system_config("api.glm.api_key") or api_key or os.getenv("GLM_API_KEY")
+            self.model = config_manager.get_system_config("api.glm.model") or model
+            self.base_url = config_manager.get_system_config("api.glm.base_url") or base_url
+            self.org_id = config_manager.get_system_config("api.glm.org_id", org_id)
+            self.timeout = config_manager.get_system_config("api.timeout", timeout)
+            self.max_retries = config_manager.get_system_config("api.max_retries", max_retries)
+            self.retry_wait_base = config_manager.get_system_config("api.retry_wait_base", retry_wait_base)
+            self.max_tokens = config_manager.get_system_config("api.glm.max_tokens", 32768)  # 从配置读取max_tokens
+        else:
+            self.api_key = api_key or os.getenv("GLM_API_KEY")
+            self.model = model
+            self.timeout = timeout
+            self.base_url = base_url
+            self.max_retries = max_retries
+            self.retry_wait_base = retry_wait_base
+            self.max_tokens = 32768  # 默认值
+
         if not self.api_key:
             raise ValueError("API Key 未设置，请设置 GLM_API_KEY 环境变量或传入参数")
-
-        self.org_id = org_id or os.getenv("GLM_ORG_ID")
-        self.base_url = base_url
-        self.model = model
-        self.timeout = timeout
-        self.max_retries = max_retries
-        self.retry_wait_base = retry_wait_base
 
         # 队列和统计信息
         self.request_queue = Queue()
@@ -170,7 +177,7 @@ class GLMClient:
                          {"role": "user", "content": "请根据上述要求生成高质量昵称列表。"}],
             "temperature": kwargs.get("temperature", 0.9),
             "top_p": kwargs.get("top_p", 0.9),
-            "max_tokens": kwargs.get("max_tokens", 65536),
+            "max_tokens": kwargs.get("max_tokens", self.max_tokens),
             "extra_body":[{"enable_thinking": True}]
         }
 

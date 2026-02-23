@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(/Users/supermuscleman/Program/**)",
+      "Edit(/Users/supermuscleman/Program/**)"
+    ],
+    "ask": [
+    ],
+    "deny": [
+      "Bash(rm -rf *)",
+      "Bash(curl :*)",
+      "Edit(~/.ssh/**)",
+      "Edit(~/.aws/**)",
+      "Read(~/.ssh/**)",
+      "Read(~/.aws/**)",
+      "Edit(**/.env)",
+      "Edit(**/.env.*)"
+    ]
+  }
+}
+
+
+

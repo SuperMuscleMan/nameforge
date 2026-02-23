@@ -5,6 +5,7 @@
 
 import sys
 import logging
+import argparse
 from pathlib import Path
 
 # 添加项目根目录到路径
@@ -22,8 +23,32 @@ logger = setup_logging("logs/app.log", level="DEBUG")
 logger = logging.getLogger("rand_names")
 
 
+def parse_args():
+    """解析命令行参数"""
+    parser = argparse.ArgumentParser(description="游戏昵称生成系统")
+    parser.add_argument(
+        "--regenerate-roots",
+        action="store_true",
+        help="重新生成词根",
+    )
+    parser.add_argument(
+        "--style",
+        type=str,
+        help="指定风格（覆盖配置文件中的设置）",
+    )
+    parser.add_argument(
+        "--count",
+        type=int,
+        help="指定生成数量（覆盖配置文件中的设置）",
+    )
+    return parser.parse_args()
+
+
 def main():
     """主程序入口"""
+    # 解析命令行参数
+    args = parse_args()
+
     logger.info("=" * 60)
     logger.info("游戏昵称生成系统 - Phase 1 启动")
     logger.info("=" * 60)
@@ -48,11 +73,25 @@ def main():
 
         logger.info("所有模块初始化完成")
 
-        # 3. 运行生成流程（以古风为例）
-        style_name = config_manager.get_generation_config("style")
+        # 确定目标风格
+        if args.style:
+            target_styles = [args.style]
+        else:
+            target_styles = [config_manager.get_generation_config("style")]
+
+        # 处理重新生成词根命令
+        if args.regenerate_roots:
+            for style in target_styles:
+                pipeline.regenerate_roots(style)
+            print("词根重新生成完成")
+            return 0
+
+        # 3. 运行生成流程
+        style_name = target_styles[0]
+        count = args.count if args.count else config_manager.get_generation_config("count")
         logger.info(f"开始为风格 '{style_name}' 生成昵称...")
 
-        result = pipeline.generate_for_style(style_name, count=config_manager.get_generation_config("count"))
+        result = pipeline.generate_for_style(style_name, count=count)
 
         # 4. 输出结果
         if result.get("stats", {}).get("error"):

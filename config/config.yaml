@@ -15,12 +15,19 @@ api:
     # model: glm-4.7-flash
 
     #  魔塔
-    api_key: ms-555cfc6e-1f0c-4335-9e8c-0dd2946cabb4 # 环境变量或直接配置
+    # api_key: ms-555cfc6e-1f0c-4335-9e8c-0dd2946cabb4 # 环境变量或直接配置
+    # org_id: null
+    # base_url: https://api-inference.modelscope.cn/v1/chat/completions
+    # model: deepseek-ai/DeepSeek-V3.2
+
+    #  阿里云百炼
+    api_key: sk-39019f718b564ec69dc6c7a9e262515c # 环境变量或直接配置
     org_id: null
-    base_url: https://api-inference.modelscope.cn/v1/chat/completions
-    model: deepseek-ai/DeepSeek-V3.2
+    base_url: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+    model: qwen-flash
+    max_tokens: 32768
   timeout: 900
-  max_retries: 3
+  max_retries: 1
   retry_wait_base: 10  # 秒
 
 # Redis 配置

@@ -1,6 +1,7 @@
 """
 生成管道
 整合所有模块，实现完整的昵称生成流程
+V2版本：集成WordRootManager和NicknameGenerator的词根模板方案
 """
 
 import json
@@ -10,13 +11,20 @@ from src.api.glm_client import GLMClient
 from src.config.config_manager import ConfigManager
 from src.prompts.prompt_manager import PromptManager
 from src.storage.storage_manager import StorageManager
+from src.roots.word_root_manager import WordRootManager
+from src.generator.nickname_generator import NicknameGenerator
 from pathlib import Path
 
 logger = logging.getLogger("rand_names")
 
 
 class GenerationPipeline:
-    """完整的生成流程编排"""
+    """完整的生成流程编排
+
+    V2版本支持两种生成模式：
+    1. V1模式：直接调用API生成昵称（保留兼容性）
+    2. V2模式：词根模板方案，AI生成词根 + 离线模板组合
+    """
 
     def __init__(
         self,
@@ -24,6 +32,7 @@ class GenerationPipeline:
         config_manager: ConfigManager,
         prompt_manager: PromptManager,
         storage: StorageManager,
+        use_v2: bool = True,
     ):
         """
         初始化生成管道
@@ -33,25 +42,37 @@ class GenerationPipeline:
             config_manager: 配置管理器
             prompt_manager: Prompt管理器
             storage: 存储管理器
+            use_v2: 是否使用V2词根模板方案
         """
         self.glm_client = glm_client
         self.config_manager = config_manager
         self.prompt_manager = prompt_manager
         self.storage = storage
+        self.use_v2 = use_v2
 
-        logger.info("GenerationPipeline 已初始化")
+        # V2模式：初始化词根管理器和昵称生成器
+        if use_v2:
+            self.root_manager = WordRootManager(glm_client, config_manager)
+            self.nickname_generator = NicknameGenerator(config_manager)
+            logger.info("GenerationPipeline 已初始化 (V2词根模板模式)")
+        else:
+            logger.info("GenerationPipeline 已初始化 (V1直接生成模式)")
 
     def generate_for_style(self, style_name: str, count: int = 100) -> Dict[str, Any]:
         """
         为某个风格生成昵称
 
-        流程:
+        V2模式流程:
+        1. 获取词根（如不存在则生成）
+        2. 使用模板组合生成昵称
+        3. 存储结果
+
+        V1模式流程（保留兼容性）:
         1. 获取配置
         2. 准备Prompt
         3. 调用API
         4. 处理结果（解析 → 验证）
         5. 存储持久化
-        6. 返回统计信息
 
         Args:
             style_name: 风格名称
@@ -69,7 +90,103 @@ class GenerationPipeline:
                 }
             }
         """
-        logger.info(f"[{style_name}] 开始生成流程，目标数量: {count}")
+        if self.use_v2:
+            return self._generate_v2(style_name, count)
+        else:
+            return self._generate_v1(style_name, count)
+
+    def _generate_v2(self, style_name: str, count: int) -> Dict[str, Any]:
+        """
+        V2版本生成流程：词根模板方案
+
+        Args:
+            style_name: 风格名称
+            count: 生成数量
+
+        Returns:
+            生成结果字典
+        """
+        logger.info(f"[{style_name}] 开始V2生成流程，目标数量: {count}")
+
+        # 1. 获取风格配置
+        style_config = self.config_manager.get_style(style_name)
+        if not style_config:
+            logger.error(f"[{style_name}] 风格不存在")
+            return {
+                "valid_names": [],
+                "invalid": [],
+                "stats": {"error": f"风格 {style_name} 不存在"},
+            }
+
+        # 2. 验证风格配置
+        if not self.config_manager.validate_style(style_name):
+            logger.error(f"[{style_name}] 风格配置无效")
+            return {
+                "valid_names": [],
+                "invalid": [],
+                "stats": {"error": f"风格 {style_name} 配置无效"},
+            }
+
+        try:
+            # 3. 获取词根（如不存在则生成）
+            roots = self.root_manager.get_roots(style_name)
+
+            # 4. 获取已存在的昵称（用于去重）
+            existing_names = set(self.storage.list_names(style_name, limit=-1))
+            logger.debug(f"[{style_name}] 已存在 {len(existing_names)} 个昵称，将用于去重")
+
+            # 5. 使用模板组合生成昵称
+            names = self.nickname_generator.generate(style_name, roots, count, existing_names)
+
+            # 6. 存储结果
+            if names:
+                self.storage.append_names(style_name, names)
+                stats = {
+                    "generated": len(names),
+                    "valid": len(names),
+                    "invalid_format": 0,
+                    "mode": "v2_word_roots",
+                }
+                self.storage.write_metadata(style_name, stats)
+            else:
+                stats = {
+                    "generated": 0,
+                    "valid": 0,
+                    "invalid_format": 0,
+                    "mode": "v2_word_roots",
+                }
+
+            logger.info(
+                f"[{style_name}] V2生成完成 "
+                f"生成={stats['generated']}, 有效={stats['valid']}"
+            )
+
+            return {
+                "valid_names": names,
+                "invalid": [],
+                "stats": stats,
+            }
+
+        except Exception as e:
+            logger.error(f"[{style_name}] V2生成流程失败: {e}")
+            return {
+                "valid_names": [],
+                "invalid": [],
+                "stats": {"error": f"V2生成失败: {e}"},
+            }
+
+    def _generate_v1(self, style_name: str, count: int) -> Dict[str, Any]:
+        """
+        V1版本生成流程：直接API调用（保留兼容性）
+
+        Args:
+            style_name: 风格名称
+            count: 生成数量
+
+        Returns:
+            生成结果字典
+        """
+        logger.info(f"[{style_name}] 开始V1生成流程，目标数量: {count}")
 
         # 1. 获取风格配置
         style_config = self.config_manager.get_style(style_name)
@@ -105,7 +222,6 @@ class GenerationPipeline:
                 recent_names=recent_names,
             )
             logger.debug(f"[{style_name}] Prompt已渲染，长度: {len(prompt)}字符")
-            logger.debug(f"[{style_name}] Prompt: {prompt}")
         except Exception as e:
             logger.error(f"[{style_name}] Prompt渲染失败: {e}")
             return {
@@ -132,12 +248,13 @@ class GenerationPipeline:
         # 7. 存储到文件
         if results["valid_names"]:
             self.storage.append_names(style_name, results["valid_names"])
+            results["stats"]["mode"] = "v1_direct_api"
             self.storage.write_metadata(style_name, results["stats"])
 
         # 8. 输出统计
         stats = results["stats"]
         logger.info(
-            f"[{style_name}] 本轮完成 "
+            f"[{style_name}] V1本轮完成 "
             f"生成={stats['generated']}, "
             f"有效={stats['valid']}, "
             f"无效={stats['invalid_format']}"
@@ -245,6 +362,24 @@ class GenerationPipeline:
             "invalid": invalid_names,
             "stats": stats,
         }
+
+    def regenerate_roots(self, style_name: str) -> Dict[str, List[str]]:
+        """重新生成指定风格的词根
+
+        Args:
+            style_name: 风格名称
+
+        Returns:
+            新生成的词根字典
+        """
+        if not self.use_v2:
+            logger.warning("V1模式不支持词根重新生成")
+            return {}
+
+        logger.info(f"[{style_name}] 开始重新生成词根...")
+        roots = self.root_manager.regenerate_roots(style_name)
+        logger.info(f"[{style_name}] 词根重新生成完成，共 {len(roots)} 个类别")
+        return roots
 
     def _validate_format(self, name: str, style_config: Dict[str, Any]) -> bool:
         """

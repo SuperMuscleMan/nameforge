@@ -81,6 +81,7 @@ def pipeline_with_mocked_api(integration_env):
             config_manager=config_manager,
             prompt_manager=prompt_manager,
             storage=storage_manager,
+            use_v2=False,  # 集成测试使用V1模式
         )
 
         yield pipeline, integration_env

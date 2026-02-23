@@ -6,7 +6,7 @@
 import yaml
 import os
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 import threading
 import logging
 
@@ -76,10 +76,12 @@ class ConfigManager:
             with open(styles_path, "r", encoding="utf-8") as f:
                 data = yaml.safe_load(f) or {}
 
-            # 分别存储styles和prompts
+            # 分别存储styles、prompts、word_roots和filters
             self.styles = data.get("styles", {})
             self.prompts = data.get("prompts", {})
             self.generation = data.get("generation", {})
+            self.word_roots = data.get("word_roots", {})
+            self.filters = data.get("filters", {})
 
             mtime = styles_path.stat().st_mtime
             self._last_modified["styles"] = mtime
@@ -255,3 +257,49 @@ class ConfigManager:
 
         required_keys = ["description", "length_min", "length_max", "charset"]
         return all(key in style for key in required_keys)
+
+    def get_word_roots_config(self) -> Dict[str, Any]:
+        """
+        获取词根配置
+
+        Returns:
+            词根配置字典
+        """
+        self.check_and_reload()
+        return self.word_roots
+
+    def get_word_root_categories(self, style_name: str) -> List[Dict[str, Any]]:
+        """
+        获取指定风格的词根类别配置
+
+        Args:
+            style_name: 风格名称
+
+        Returns:
+            词根类别列表
+        """
+        self.check_and_reload()
+        return self.word_roots.get("categories", {}).get(style_name, [])
+
+    def get_word_root_templates(self, style_name: str) -> List[str]:
+        """
+        获取指定风格的词根组合模板
+
+        Args:
+            style_name: 风格名称
+
+        Returns:
+            模板列表
+        """
+        self.check_and_reload()
+        return self.word_roots.get("templates", {}).get(style_name, [])
+
+    def get_filters_config(self) -> Dict[str, Any]:
+        """
+        获取过滤规则配置
+
+        Returns:
+            过滤规则配置字典
+        """
+        self.check_and_reload()
+        return self.filters

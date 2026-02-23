@@ -24,15 +24,24 @@ class PromptManager:
 
     def get_prompt_template(self, style_name: str) -> str:
         """
-        获取Prompt模板（返回默认模板，不再区分风格特定模板）
+        获取Prompt模板
+        优先返回风格特定模板，如不存在则返回默认模板
 
         Args:
-            style_name: 风格名称（为兼容性保留，但不影响返回内容）
+            style_name: 风格名称
 
         Returns:
             Prompt模板文本
         """
         templates = self.config_manager.get_prompt_templates()
+
+        # 首先尝试获取风格特定模板
+        style_templates = templates.get("style_templates", {})
+        if style_name in style_templates:
+            logger.debug(f"使用风格特定模板: {style_name}")
+            return style_templates[style_name]
+
+        # 返回默认模板
         default = templates.get("default_template", "")
         logger.debug(f"使用默认模板: {style_name}")
         return default
