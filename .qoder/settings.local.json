@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Read(/Users/supermuscleman/Program/**)",
-      "Edit(/Users/supermuscleman/Program/**)"
+      "Edit(/Users/supermuscleman/Program/**)",
+      "Read(E:\\funny_project\\**)",
+      "Edit(E:\\funny_project\\**)"
     ],
     "ask": [
     ],

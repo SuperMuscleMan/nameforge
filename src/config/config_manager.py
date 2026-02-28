@@ -42,6 +42,7 @@ class ConfigManager:
         """一次性加载所有配置"""
         self.load_system_config()
         self.load_styles()
+        self.load_prompts()
 
     def load_system_config(self):
         """加载系统配置"""
@@ -94,6 +95,32 @@ class ConfigManager:
             logger.error(f"加载风格配置失败: {e}")
             raise
 
+    def load_prompts(self):
+        """加载Prompt配置"""
+        prompts_path = self.config_dir / "prompts.yaml"
+
+        if not prompts_path.exists():
+            logger.warning(f"Prompt配置文件不存在: {prompts_path}，使用默认Prompt")
+            self.prompts_config = {}
+            return
+
+        try:
+            with open(prompts_path, "r", encoding="utf-8") as f:
+                data = yaml.safe_load(f) or {}
+
+            self.prompts_config = data.get("prompts", {})
+
+            mtime = prompts_path.stat().st_mtime
+            self._last_modified["prompts"] = mtime
+
+            logger.info(
+                f"成功加载Prompt配置: {prompts_path}, "
+                f"包含{len(self.prompts_config)}个Prompt模板"
+            )
+        except Exception as e:
+            logger.error(f"加载Prompt配置失败: {e}")
+            self.prompts_config = {}
+
     def check_and_reload(self) -> bool:
         """
         定期检查配置文件变化
@@ -124,6 +151,16 @@ class ConfigManager:
                 if current_mtime > last_mtime:
                     logger.info("检测到config.yaml变化，重新加载...")
                     self.load_system_config()
+                    changed = True
+
+            # 检查prompts.yaml
+            prompts_path = self.config_dir / "prompts.yaml"
+            if prompts_path.exists():
+                current_mtime = prompts_path.stat().st_mtime
+                last_mtime = self._last_modified.get("prompts", 0)
+                if current_mtime > last_mtime:
+                    logger.info("检测到prompts.yaml变化，重新加载...")
+                    self.load_prompts()
                     changed = True
 
             return changed
@@ -204,7 +241,7 @@ class ConfigManager:
 
     def get_prompt_templates(self) -> Dict[str, str]:
         """
-        获取所有Prompt模板
+        获取所有Prompt模板（兼容V1，从styles.yaml读取）
 
         Returns:
             模板字典
@@ -214,13 +251,44 @@ class ConfigManager:
 
     def get_default_prompt_template(self) -> str:
         """
-        获取默认Prompt模板
+        获取默认Prompt模板（兼容V1，从styles.yaml读取）
 
         Returns:
             默认模板文本
         """
         self.check_and_reload()
         return self.prompts.get("default_template", "")
+
+    def get_prompt_config(self, prompt_type: str, key: str = None, default: Any = None) -> Any:
+        """
+        获取Prompt配置（从prompts.yaml读取）
+
+        Args:
+            prompt_type: Prompt类型，如 'word_root_generation', 'scoring', 'nickname_generation'
+            key: 配置键（支持点号分隔，如 'dimensions'）
+            default: 默认值
+
+        Returns:
+            Prompt配置值
+        """
+        self.check_and_reload()
+
+        prompt_config = self.prompts_config.get(prompt_type, {})
+
+        if key is None:
+            return prompt_config
+
+        # 支持点号分隔的键
+        keys = key.split(".")
+        value = prompt_config
+
+        for k in keys:
+            if isinstance(value, dict):
+                value = value.get(k)
+            else:
+                return default
+
+        return value if value is not None else default
 
     def _replace_env_vars(self, content: str) -> str:
         """

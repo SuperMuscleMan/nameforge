@@ -123,14 +123,20 @@ class WordRootManager:
         # 获取词根配置
         word_roots_config = self.config_manager.get_word_roots_config()
         categories_config = word_roots_config.get("categories", {}).get(style_name, [])
-        count_per_category = word_roots_config.get("count_per_category", 100)
 
         if not categories_config:
             logger.warning(f"[{style_name}] 未找到词根类别配置，使用默认配置")
-            categories_config = [{"name": "默认", "description": "通用词根", "examples": ["词", "根"]}]
+            categories_config = [{"name": "默认", "description": "通用词根", "examples": ["词", "根"], "count_per_category": 25}]
+
+        # 计算每个类别的词根数量（从配置中读取，默认25）
+        category_counts = {}
+        for category in categories_config:
+            category_name = category["name"]
+            count = category.get("count_per_category", 25)
+            category_counts[category_name] = count
 
         # 构建一次性生成所有类别的Prompt
-        prompt = self._build_batch_generation_prompt(style_name, categories_config, count_per_category)
+        prompt = self._build_batch_generation_prompt(style_name, categories_config, 25)
 
         logger.info(f"[{style_name}] 开始一次性生成所有类别的词根...")
 
@@ -144,7 +150,8 @@ class WordRootManager:
             # 使用示例作为回退
             for category in categories_config:
                 category_name = category["name"]
-                roots[category_name] = category.get("examples", [])[:count_per_category]
+                count = category_counts.get(category_name, 25)
+                roots[category_name] = category.get("examples", [])[:count]
             return roots
 
         # 解析JSON响应
@@ -166,12 +173,14 @@ class WordRootManager:
                 logger.warning(f"[{style_name}] 返回格式错误，期望JSON对象，使用示例")
                 for category in categories_config:
                     category_name = category["name"]
-                    roots[category_name] = category.get("examples", [])[:count_per_category]
+                    count = category_counts.get(category_name, 25)
+                    roots[category_name] = category.get("examples", [])[:count]
                 return roots
 
             # 处理每个类别的词根
             for category in categories_config:
                 category_name = category["name"]
+                count = category_counts.get(category_name, 25)
                 category_roots = parsed_roots.get(category_name, [])
 
                 if not isinstance(category_roots, list):
@@ -179,10 +188,10 @@ class WordRootManager:
                     category_roots = category.get("examples", [])
 
                 # 确保词根数量
-                if len(category_roots) < count_per_category:
+                if len(category_roots) < count:
                     # 补充示例词根
                     examples = category.get("examples", [])
-                    while len(category_roots) < count_per_category and examples:
+                    while len(category_roots) < count and examples:
                         category_roots.append(examples[len(category_roots) % len(examples)])
 
                 roots[category_name] = category_roots
@@ -194,7 +203,8 @@ class WordRootManager:
             # 使用示例作为回退
             for category in categories_config:
                 category_name = category["name"]
-                roots[category_name] = category.get("examples", [])[:count_per_category]
+                count = category_counts.get(category_name, 25)
+                roots[category_name] = category.get("examples", [])[:count]
 
         return roots
 
@@ -263,26 +273,28 @@ class WordRootManager:
         return prompt
 
     def _build_batch_generation_prompt(
-        self, style_name: str, categories: List[Dict], count: int
+        self, style_name: str, categories: List[Dict], default_count: int
     ) -> str:
         """
         构建批量词根生成Prompt（一次性生成所有类别）
+        支持从配置文件读取模板
 
         Args:
             style_name: 风格名称
             categories: 类别配置列表
-            count: 每个类别需要生成的词根数量
+            default_count: 默认每个类别需要生成的词根数量（当类别未指定时使用）
 
         Returns:
             Prompt文本
         """
-        # 构建类别描述
+        # 构建类别描述（每个类别可以有自己的count_per_category）
         categories_desc = []
         for category in categories:
             category_name = category["name"]
             description = category["description"]
             examples = category.get("examples", [])
             examples_str = ", ".join(examples[:5]) if examples else "无"
+            count = category.get("count_per_category", default_count)
             categories_desc.append(
                 f"- {category_name}: {description}（{count}个），参考示例：{examples_str}"
             )
@@ -298,12 +310,30 @@ class WordRootManager:
 
         example_json = json.dumps(example_output, ensure_ascii=False, indent=2)
 
-        prompt = f"""请为{style_name}风格生成词根，包含以下类别：
+        # 从配置读取模板，使用默认模板作为回退
+        template = self.config_manager.get_prompt_config(
+            "word_root_generation",
+            "template",
+            default=self._get_default_word_root_template()
+        )
 
-{categories_desc_str}
+        # 渲染模板
+        prompt = template.format(
+            style_name=style_name,
+            categories_desc=categories_desc_str,
+            example_json=example_json
+        )
+
+        return prompt
+
+    def _get_default_word_root_template(self) -> str:
+        """获取默认词根生成模板（当配置文件不存在时使用）"""
+        return """请为{style_name}风格生成词根，包含以下类别：
+
+{categories_desc}
 
 要求：
-1. 每个类别生成{count}个高质量词根
+1. 尽量按照每个类别指定的数量生成优质词根，避免生成劣质不符合风格的词根充数
 2. 必须符合{style_name}风格特征
 3. 避免生僻字，常用字优先
 4. 适合与其他词根组合成昵称
@@ -317,7 +347,6 @@ class WordRootManager:
 返回JSON格式（仅返回JSON对象，无其他文字）：
 {example_json}
 """
-        return prompt
 
     def clear_cache(self, style_name: Optional[str] = None) -> None:
         """
