@@ -33,7 +33,7 @@ htmlcov/
 
 logs/
 data/*.txt
-data/metadata/
+tmp_data/data/metadata/
 
 .DS_Store
 .vscode/
@@ -42,3 +42,5 @@ data/metadata/
 *.swo
 *~
 config/config.yaml
+tmp_*
+CLAUDE.md

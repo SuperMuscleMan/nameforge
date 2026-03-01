@@ -41,7 +41,7 @@ class WordRootManager:
 
         logger.info("WordRootManager 已初始化")
 
-    def get_roots(self, style_name: str) -> Dict[str, List[str]]:
+    def get_roots(self, style_name: str) -> Dict[str, List[Dict]]:
         """
         获取指定风格的词根
 
@@ -49,13 +49,13 @@ class WordRootManager:
         1. 检查内存缓存
         2. 检查文件是否存在
         3. 如不存在，调用AI生成
-        4. 返回词根字典 {类别: [词根列表]}
+        4. 返回词根字典 {类别: [{"word": "词根", "tags": ["标签"]}, ...]}
 
         Args:
             style_name: 风格名称
 
         Returns:
-            词根字典 {类别名: [词根列表]}
+            词根字典，格式为 {类别名: [{"word": "词根", "tags": ["标签1"]}, ...]}
         """
         # 1. 检查内存缓存
         if style_name in self.roots_cache:
@@ -81,15 +81,18 @@ class WordRootManager:
 
         return roots
 
-    def _load_roots_from_file(self, style_name: str) -> Optional[Dict[str, List[str]]]:
+    def _load_roots_from_file(self, style_name: str) -> Optional[Dict[str, List[Dict]]]:
         """
         从YAML文件加载词根
+
+        支持新格式（带标签的字典）和旧格式（纯字符串）
 
         Args:
             style_name: 风格名称
 
         Returns:
-            词根字典，如文件不存在则返回None
+            词根字典，格式为 {类别名: [{"word": "词根", "tags": ["标签1"]}, ...]}
+            如文件不存在则返回None
         """
         file_path = self.data_dir / f"{style_name}_roots.yaml"
 
@@ -101,14 +104,33 @@ class WordRootManager:
                 data = yaml.safe_load(f) or {}
 
             categories = data.get("categories", {})
-            logger.debug(f"[{style_name}] 从文件加载了 {len(categories)} 个词根类别")
-            return categories
+
+            # 处理词根格式：统一转换为字典格式
+            processed_categories = {}
+            for category_name, roots_list in categories.items():
+                processed_roots = []
+                for root_item in roots_list:
+                    if isinstance(root_item, str):
+                        # 旧格式：纯字符串
+                        processed_roots.append({"word": root_item, "tags": []})
+                    elif isinstance(root_item, dict) and "word" in root_item:
+                        # 新格式：字典格式
+                        if "tags" not in root_item:
+                            root_item["tags"] = []
+                        processed_roots.append(root_item)
+                    else:
+                        logger.warning(f"[{style_name}] 词根格式错误，跳过: {root_item}")
+
+                processed_categories[category_name] = processed_roots
+
+            logger.debug(f"[{style_name}] 从文件加载了 {len(processed_categories)} 个词根类别")
+            return processed_categories
 
         except Exception as e:
             logger.error(f"[{style_name}] 加载词根文件失败: {e}")
             return None
 
-    def _generate_roots(self, style_name: str) -> Dict[str, List[str]]:
+    def _generate_roots(self, style_name: str) -> Dict[str, List[Dict]]:
         """
         调用AI一次性生成所有类别的词根
 
@@ -118,11 +140,10 @@ class WordRootManager:
             style_name: 风格名称
 
         Returns:
-            词根字典 {类别名: [词根列表]}
+            词根字典，格式为 {类别名: [{"word": "词根", "tags": ["标签"]}, ...]}
         """
-        # 获取词根配置
-        word_roots_config = self.config_manager.get_word_roots_config()
-        categories_config = word_roots_config.get("categories", {}).get(style_name, [])
+        # 获取词根配置（使用新结构）
+        categories_config = self.config_manager.get_word_root_categories(style_name)
 
         if not categories_config:
             logger.warning(f"[{style_name}] 未找到词根类别配置，使用默认配置")
@@ -151,7 +172,9 @@ class WordRootManager:
             for category in categories_config:
                 category_name = category["name"]
                 count = category_counts.get(category_name, 25)
-                roots[category_name] = category.get("examples", [])[:count]
+                examples = category.get("examples", [])[:count]
+                # 转换为字典格式
+                roots[category_name] = [{"word": ex, "tags": []} for ex in examples]
             return roots
 
         # 解析JSON响应
@@ -174,7 +197,8 @@ class WordRootManager:
                 for category in categories_config:
                     category_name = category["name"]
                     count = category_counts.get(category_name, 25)
-                    roots[category_name] = category.get("examples", [])[:count]
+                    examples = category.get("examples", [])[:count]
+                    roots[category_name] = [{"word": ex, "tags": []} for ex in examples]
                 return roots
 
             # 处理每个类别的词根
@@ -187,15 +211,31 @@ class WordRootManager:
                     logger.warning(f"[{style_name}] 类别 '{category_name}' 返回格式错误，使用示例")
                     category_roots = category.get("examples", [])
 
+                # 处理词根格式：支持字符串或字典格式
+                processed_roots = []
+                for root_item in category_roots:
+                    if isinstance(root_item, str):
+                        # 旧格式：纯字符串，转换为字典格式
+                        processed_roots.append({"word": root_item, "tags": []})
+                    elif isinstance(root_item, dict) and "word" in root_item:
+                        # 新格式：字典格式，保持不变
+                        # 确保tags字段存在
+                        if "tags" not in root_item:
+                            root_item["tags"] = []
+                        processed_roots.append(root_item)
+                    else:
+                        logger.warning(f"[{style_name}] 词根格式错误，跳过: {root_item}")
+
                 # 确保词根数量
-                if len(category_roots) < count:
+                if len(processed_roots) < count:
                     # 补充示例词根
                     examples = category.get("examples", [])
-                    while len(category_roots) < count and examples:
-                        category_roots.append(examples[len(category_roots) % len(examples)])
+                    while len(processed_roots) < count and examples:
+                        example_word = examples[len(processed_roots) % len(examples)]
+                        processed_roots.append({"word": example_word, "tags": []})
 
-                roots[category_name] = category_roots
-                logger.info(f"[{style_name}] 类别 '{category_name}' 生成了 {len(category_roots)} 个词根")
+                roots[category_name] = processed_roots
+                logger.info(f"[{style_name}] 类别 '{category_name}' 生成了 {len(processed_roots)} 个词根")
 
         except json.JSONDecodeError as e:
             logger.error(f"[{style_name}] 解析词根失败: {e}")
@@ -204,17 +244,18 @@ class WordRootManager:
             for category in categories_config:
                 category_name = category["name"]
                 count = category_counts.get(category_name, 25)
-                roots[category_name] = category.get("examples", [])[:count]
+                examples = category.get("examples", [])[:count]
+                roots[category_name] = [{"word": ex, "tags": []} for ex in examples]
 
         return roots
 
-    def _save_roots_to_file(self, style_name: str, roots: Dict[str, List[str]]) -> None:
+    def _save_roots_to_file(self, style_name: str, roots: Dict[str, List[Dict]]) -> None:
         """
         保存词根到YAML文件
 
         Args:
             style_name: 风格名称
-            roots: 词根字典
+            roots: 词根字典，格式为 {类别名: [{"word": "词根", "tags": ["标签"]}, ...]}
         """
         file_path = self.data_dir / f"{style_name}_roots.yaml"
 
@@ -277,7 +318,7 @@ class WordRootManager:
     ) -> str:
         """
         构建批量词根生成Prompt（一次性生成所有类别）
-        支持从配置文件读取模板
+        支持从配置文件读取模板，并添加标签要求
 
         Args:
             style_name: 风格名称
@@ -301,12 +342,25 @@ class WordRootManager:
 
         categories_desc_str = "\n".join(categories_desc)
 
-        # 构建返回格式示例
+        # 获取标签配置
+        tag_config = self.config_manager.get_style_tags(style_name)
+        available_tags = tag_config.get("available", [])
+        available_tags_str = "、".join(available_tags) if available_tags else "无"
+
+        # 构建返回格式示例（带标签）
         example_output = {}
         for category in categories:
             category_name = category["name"]
             examples = category.get("examples", [])
-            example_output[category_name] = examples[:3] if examples else ["示例1", "示例2", "示例3"]
+            if available_tags:
+                # 如果有标签配置，示例中包含标签
+                example_output[category_name] = [
+                    {"word": examples[0] if examples else "示例1", "tags": [available_tags[0]]},
+                    {"word": examples[1] if len(examples) > 1 else "示例2", "tags": [available_tags[0]]},
+                ]
+            else:
+                # 如果没有标签配置，使用旧格式
+                example_output[category_name] = examples[:3] if examples else ["示例1", "示例2", "示例3"]
 
         example_json = json.dumps(example_output, ensure_ascii=False, indent=2)
 
@@ -321,6 +375,7 @@ class WordRootManager:
         prompt = template.format(
             style_name=style_name,
             categories_desc=categories_desc_str,
+            available_tags=available_tags_str,
             example_json=example_json
         )
 
@@ -363,7 +418,7 @@ class WordRootManager:
             self.roots_cache.clear()
             logger.info("所有词根缓存已清除")
 
-    def regenerate_roots(self, style_name: str) -> Dict[str, List[str]]:
+    def regenerate_roots(self, style_name: str) -> Dict[str, List[Dict]]:
         """
         重新生成指定风格的词根
 
@@ -371,7 +426,7 @@ class WordRootManager:
             style_name: 风格名称
 
         Returns:
-            新生成的词根字典
+            新生成的词根字典，格式为 {类别名: [{"word": "词根", "tags": ["标签"]}, ...]}
         """
         # 清除缓存
         self.clear_cache(style_name)

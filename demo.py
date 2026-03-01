@@ -39,7 +39,7 @@ def demo_complete_pipeline():
         with patch.dict("os.environ", {"GLM_API_KEY": "demo_key"}):
             glm_client = GLMClient(api_key="demo_key")
 
-        storage_manager = StorageManager(base_dir="data")
+        storage_manager = StorageManager(base_dir="tmp_data/data")
         pipeline = GenerationPipeline(
             glm_client=glm_client,
             config_manager=config_manager,

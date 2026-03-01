@@ -1,169 +1,423 @@
 metadata:
   style: 二次元
-  generated_at: '2026-02-27T18:13:45.113594'
-  total_count: 160
+  generated_at: '2026-03-01T20:20:40.211845'
+  total_count: 138
 categories:
-  萌系前缀:
-  - 软萌
-  - 傲娇
-  - 天然
-  - 腹黑
-  - 迷糊
-  - 热血
-  - 高冷
-  - 慵懒
-  - 活泼
-  - 害羞
-  - 勇敢
-  - 神秘
-  - 梦幻
-  - 闪耀
-  - 透明
-  - 混沌
-  - 神圣
-  - 黑暗
-  - 光明
-  - 极速
-  - 超速
-  - 无限
-  - 终极
-  - 绝对
-  - 完美
-  - 可爱
-  - 无敌
-  - 幸运
-  - 奇迹
-  - 幻想
-  - 虚拟
-  - 电子
-  - 机甲
-  - 幻影
-  - 星空
-  - 霓虹
-  - 缤纷
-  - 泡泡
-  - 元气
-  - 治愈
-  幻想身份:
-  - 魔女
-  - 指挥官
-  - 应援员
-  - 工匠
-  - 见习生
-  - 骑士
-  - 法师
-  - 刺客
-  - 弓手
-  - 牧师
-  - 战士
-  - 巫师
-  - 术士
-  - 猎人
-  - 盗贼
-  - 剑士
-  - 盾卫
-  - 游侠
-  - 祭司
-  - 召唤师
-  - 炼金师
-  - 魔导士
-  - 驱魔师
-  - 狩魔人
-  - 守夜人
-  - 探险家
-  - 航海士
-  - 飞行员
-  - 驾驶员
-  - 操作员
-  - 分析员
-  - 建筑师
-  - 医师
-  - 护士
-  - 教官
-  - 队长
-  - 领袖
-  - 勇者
-  - 偶像
-  - 侦探
-  核心意象:
-  - 草莓
-  - 肉垫
-  - 泡芙
-  - 星砂
-  - 铃铛
-  - 樱花
-  - 月亮
-  - 星星
-  - 云朵
-  - 猫咪
-  - 狗狗
-  - 兔子
-  - 狐狸
-  - 小熊
-  - 鹿角
-  - 鸟羽
-  - 鱼鳞
-  - 蝴蝶
-  - 蜜蜂
-  - 蛋糕
-  - 饼干
-  - 糖果
-  - 巧克力
-  - 布丁
-  - 果冻
-  - 冰淇淋
-  - 奶茶
-  - 咖啡
-  - 茶杯
-  - 酒杯
-  - 水滴
-  - 火苗
-  - 风铃
-  - 青苔
-  - 金币
-  - 木棉
-  - 花朵
-  - 草叶
-  - 树叶
-  - 果实
-  - 种子
-  - 藤蔓
-  - 琥珀
-  - 蜜糖
-  - 骨朵
-  - 血橙
-  - 灵蝶
-  - 魄珠
-  - 神灯
-  - 水晶
-  萌趣语气词:
-  - 酱
-  - 丸
-  - 崽
-  - 宝
-  - 叽
-  - 炭
-  - 亲
-  - 君
-  - 样
-  - 桑
-  - 殿下
-  - 大人
-  - 老师
-  - 同学
-  - 前辈
-  - 后辈
-  - 主人
-  - 喵
-  - 啾
-  - 噜
-  - 哒
-  - 呀
-  - 呢
-  - 哦
-  - 嘛
-  - 啦
-  - 咯
-  - 呗
-  - 呜
-  - 嘻
+  modifier:
+  - word: 野生
+    tags:
+    - 冷色调
+  - word: 限定
+    tags:
+    - 冷色调
+  - word: 微醺
+    tags:
+    - 暖色调
+  - word: 绝望
+    tags:
+    - 暗色调
+  - word: 超强
+    tags:
+    - 元气
+  - word: 傲娇
+    tags:
+    - 傲娇
+  - word: 治愈
+    tags:
+    - 治愈
+  - word: 冷酷
+    tags:
+    - 冷色调
+  - word: 元气
+    tags:
+    - 元气
+  - word: 魔法
+    tags:
+    - 魔法
+  - word: 科技
+    tags:
+    - 科技
+  - word: 日常
+    tags:
+    - 日常
+  - word: 甜萌
+    tags:
+    - 暖色调
+  - word: 慵懒
+    tags:
+    - 暖色调
+  - word: 冷静
+    tags:
+    - 冷色调
+  - word: 迷糊
+    tags:
+    - 治愈
+  - word: 元气满满
+    tags:
+    - 元气
+  - word: 呆萌
+    tags:
+    - 治愈
+  - word: 神秘
+    tags:
+    - 暗色调
+  - word: 闪耀
+    tags:
+    - 暖色调
+  - word: 星轨
+    tags:
+    - 冷色调
+  - word: 琉璃
+    tags:
+    - 冷色调
+  - word: 薄荷
+    tags:
+    - 冷色调
+  - word: 蜜糖
+    tags:
+    - 暖色调
+  - word: 初雪
+    tags:
+    - 冷色调
+  - word: 晨光
+    tags:
+    - 暖色调
+  - word: 幽梦
+    tags:
+    - 暗色调
+  - word: 心跳
+    tags:
+    - 元气
+  - word: 跃动
+    tags:
+    - 元气
+  - word: 清风
+    tags:
+    - 冷色调
+  subject:
+  - word: 魔女
+    tags:
+    - 魔法
+  - word: 指挥官
+    tags:
+    - 科技
+  - word: 草莓
+    tags:
+    - 日常
+  - word: 猫咪
+    tags:
+    - 日常
+  - word: 幼龙
+    tags:
+    - 魔法
+  - word: 机甲
+    tags:
+    - 科技
+  - word: 星使
+    tags:
+    - 魔法
+  - word: 幻影
+    tags:
+    - 暗色调
+  - word: 奶猫
+    tags:
+    - 治愈
+  - word: 符文师
+    tags:
+    - 魔法
+  - word: 守望者
+    tags:
+    - 冷色调
+  - word: 小太阳
+    tags:
+    - 元气
+  - word: 音符
+    tags:
+    - 元气
+  - word: 星尘
+    tags:
+    - 冷色调
+  - word: 纸鹤
+    tags:
+    - 治愈
+  - word: 冰晶
+    tags:
+    - 冷色调
+  - word: 萤火
+    tags:
+    - 暖色调
+  - word: 雷电
+    tags:
+    - 科技
+  - word: 花灵
+    tags:
+    - 治愈
+  - word: 机械喵
+    tags:
+    - 科技
+  - word: 树精
+    tags:
+    - 自然
+  - word: 书灵
+    tags:
+    - 魔法
+  - word: 风暴
+    tags:
+    - 冷色调
+  - word: 铃铛
+    tags:
+    - 元气
+  - word: 灯塔
+    tags:
+    - 暖色调
+  - word: 游侠
+    tags:
+    - 日常
+  - word: 星语
+    tags:
+    - 魔法
+  - word: 碎梦
+    tags:
+    - 暗色调
+  - word: 光翼
+    tags:
+    - 魔法
+  - word: 赤焰
+    tags:
+    - 暖色调
+  - word: 铁壁
+    tags:
+    - 科技
+  - word: 月痕
+    tags:
+    - 冷色调
+  - word: 露珠
+    tags:
+    - 治愈
+  - word: 风铃
+    tags:
+    - 元气
+  - word: 星轨
+    tags:
+    - 冷色调
+  - word: 云朵
+    tags:
+    - 治愈
+  - word: 镜面
+    tags:
+    - 暗色调
+  - word: 光年
+    tags:
+    - 科技
+  - word: 糖果
+    tags:
+    - 日常
+  - word: 小鹿
+    tags:
+    - 治愈
+  - word: 回声
+    tags:
+    - 冷色调
+  - word: 瞬影
+    tags:
+    - 暗色调
+  - word: 心弦
+    tags:
+    - 元气
+  - word: 流光
+    tags:
+    - 暖色调
+  - word: 秘钥
+    tags:
+    - 魔法
+  - word: 守护
+    tags:
+    - 治愈
+  - word: 梦境
+    tags:
+    - 暗色调
+  - word: 晨曦
+    tags:
+    - 暖色调
+  - word: 浮尘
+    tags:
+    - 冷色调
+  - word: 星辉
+    tags:
+    - 魔法
+  - word: 羽翼
+    tags:
+    - 元气
+  - word: 焰心
+    tags:
+    - 暖色调
+  - word: 量子
+    tags:
+    - 科技
+  - word: 铃音
+    tags:
+    - 元气
+  - word: 雾影
+    tags:
+    - 暗色调
+  - word: 琥珀
+    tags:
+    - 暖色调
+  - word: 灵枢
+    tags:
+    - 魔法
+  - word: 极光
+    tags:
+    - 冷色调
+  action:
+  - word: 干饭
+    tags:
+    - 日常
+  - word: 贴贴
+    tags:
+    - 治愈
+  - word: 召唤
+    tags:
+    - 魔法
+  - word: 瞬移
+    tags:
+    - 科技
+  - word: 躲猫猫
+    tags:
+    - 元气
+  - word: 弹幕
+    tags:
+    - 科技
+  - word: 闪耀
+    tags:
+    - 元气
+  - word: 冲刺
+    tags:
+    - 元气
+  - word: 滑铲
+    tags:
+    - 日常
+  - word: 蹦迪
+    tags:
+    - 元气
+  - word: 翻滚
+    tags:
+    - 日常
+  - word: 吐泡泡
+    tags:
+    - 治愈
+  - word: 眨眼
+    tags:
+    - 治愈
+  - word: 飘浮
+    tags:
+    - 魔法
+  - word: 跳跃
+    tags:
+    - 元气
+  - word: 闪烁
+    tags:
+    - 魔法
+  - word: 放电
+    tags:
+    - 科技
+  - word: 结界
+    tags:
+    - 魔法
+  - word: 扫射
+    tags:
+    - 科技
+  - word: 吟唱
+    tags:
+    - 魔法
+  - word: 冲锋
+    tags:
+    - 元气
+  - word: 回旋
+    tags:
+    - 日常
+  - word: 投掷
+    tags:
+    - 日常
+  - word: 蓄力
+    tags:
+    - 科技
+  - word: 释放
+    tags:
+    - 魔法
+  - word: 穿梭
+    tags:
+    - 科技
+  - word: 轻舞
+    tags:
+    - 治愈
+  - word: 旋转
+    tags:
+    - 元气
+  - word: 疾走
+    tags:
+    - 元气
+  - word: 瞬闪
+    tags:
+    - 科技
+  particle:
+  - word: 酱
+    tags:
+    - 治愈
+  - word: 丸
+    tags:
+    - 治愈
+  - word: 崽
+    tags:
+    - 元气
+  - word: 宝
+    tags:
+    - 治愈
+  - word: 喵
+    tags:
+    - 日常
+  - word: 咕
+    tags:
+    - 元气
+  - word: 哒
+    tags:
+    - 元气
+  - word: 兮
+    tags:
+    - 魔法
+  - word: 噜
+    tags:
+    - 治愈
+  - word: 咩
+    tags:
+    - 日常
+  - word: 啾
+    tags:
+    - 治愈
+  - word: 噗
+    tags:
+    - 元气
+  - word: 呀
+    tags:
+    - 元气
+  - word: 奈
+    tags:
+    - 魔法
+  - word: 洛
+    tags:
+    - 冷色调
+  - word: 汐
+    tags:
+    - 冷色调
+  - word: 岚
+    tags:
+    - 冷色调
+  - word: 星
+    tags:
+    - 魔法
+  - word: 光
+    tags:
+    - 暖色调
+  - word: 铃
+    tags:
+    - 元气

@@ -340,6 +340,9 @@ class ConfigManager:
         """
         获取指定风格的词根类别配置
 
+        优先从新结构（styles.{style_name}.categories）读取
+        如果不存在，则从旧结构（word_roots.categories.{style_name}）读取
+
         Args:
             style_name: 风格名称
 
@@ -347,11 +350,21 @@ class ConfigManager:
             词根类别列表
         """
         self.check_and_reload()
+
+        # 优先从新结构读取
+        style = self.get_style(style_name)
+        if style and "categories" in style:
+            return style.get("categories", [])
+
+        # 回退到旧结构
         return self.word_roots.get("categories", {}).get(style_name, [])
 
     def get_word_root_templates(self, style_name: str) -> List[str]:
         """
         获取指定风格的词根组合模板
+
+        优先从新结构（styles.{style_name}.templates）读取
+        如果不存在，则从旧结构（word_roots.templates.{style_name}）读取
 
         Args:
             style_name: 风格名称
@@ -360,6 +373,13 @@ class ConfigManager:
             模板列表
         """
         self.check_and_reload()
+
+        # 优先从新结构读取
+        style = self.get_style(style_name)
+        if style and "templates" in style:
+            return style.get("templates", [])
+
+        # 回退到旧结构
         return self.word_roots.get("templates", {}).get(style_name, [])
 
     def get_filters_config(self) -> Dict[str, Any]:
@@ -371,3 +391,50 @@ class ConfigManager:
         """
         self.check_and_reload()
         return self.filters
+
+    def get_style_tags(self, style_name: str) -> Dict[str, Any]:
+        """
+        获取指定风格的标签配置
+
+        Args:
+            style_name: 风格名称
+
+        Returns:
+            标签配置字典，包含 'available' 和 'conflicts' 键
+            如果风格不存在或未配置标签，返回空配置
+        """
+        self.check_and_reload()
+        style = self.get_style(style_name)
+        if not style:
+            return {"available": [], "conflicts": []}
+
+        return style.get("tags", {"available": [], "conflicts": []})
+
+    def get_style_filters(self, style_name: str) -> Dict[str, Any]:
+        """
+        获取指定风格的过滤规则
+
+        优先从新结构（styles.{style_name}.filters）读取
+        如果不存在，则从旧结构（filters.{style_name}）读取
+
+        Args:
+            style_name: 风格名称
+
+        Returns:
+            过滤规则字典
+        """
+        self.check_and_reload()
+
+        # 优先从新结构读取
+        style = self.get_style(style_name)
+        if style and "filters" in style:
+            return style.get("filters", {})
+
+        # 回退到旧结构
+        global_filters = self.filters
+        style_filters = {
+            "forbid_duplicate_chars": global_filters.get("forbid_duplicate_chars", True),
+            "forbidden_combinations": global_filters.get("forbidden_combinations", {}).get(style_name, [])
+        }
+        return style_filters
+
