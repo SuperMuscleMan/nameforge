@@ -91,18 +91,13 @@ class TestQualityScorer:
     @patch("src.scoring.quality_scorer.requests.post")
     def test_score_batch_success(self, mock_post):
         """测试批量评分成功"""
-        # Mock响应
+        # Mock响应（新的纯文本格式）
         mock_response = MagicMock()
         mock_response.raise_for_status.return_value = None
         mock_response.json.return_value = {
             "choices": [{
                 "message": {
-                    "content": json.dumps({
-                        "scores": [
-                            {"name": "墨染剑修", "score": 8.5, "comment": "很好"},
-                            {"name": "镇天门", "score": 7.2, "comment": "一般"},
-                        ]
-                    })
+                    "content": "墨染剑修|8.5\n镇天门|7.2"
                 }
             }],
             "usage": {"prompt_tokens": 100, "completion_tokens": 50, "total_tokens": 150},
@@ -130,9 +125,7 @@ class TestQualityScorer:
         mock_response.json.return_value = {
             "choices": [{
                 "message": {
-                    "content": "```json\n" + json.dumps({
-                        "scores": [{"name": "测试", "score": 8.0, "comment": "好"}]
-                    }) + "\n```"
+                    "content": "```\n测试|8.0\n```"
                 }
             }],
             "usage": {"prompt_tokens": 50, "completion_tokens": 20, "total_tokens": 70},
@@ -202,8 +195,8 @@ class TestScorePipeline:
         scorer.batch_size = 10
         scorer.model = "qwen-plus"
         scorer.score_batch.return_value = [
-            {"name": "墨染剑修", "score": 8.5, "comment": "很好"},
-            {"name": "镇天门", "score": 7.2, "comment": "一般"},
+            {"name": "墨染剑修", "score": 8.5, "comment": ""},
+            {"name": "镇天门", "score": 7.2, "comment": ""},
         ]
         scorer.get_token_usage.return_value = {"input": 100, "output": 50, "total": 150}
         scorer.get_request_count.return_value = 1
@@ -262,7 +255,7 @@ class TestScorePipeline:
         # 创建已有评分文件
         scores_file = tmp_path / "古风_scores.txt"
         scores_file.write_text(
-            "# 评分时间: 2026-01-01\n墨染剑修 | 8.5 | 很好\n",
+            "# 评分时间: 2026-01-01\n墨染剑修 | 8.5\n",
             encoding="utf-8",
         )
 
@@ -279,7 +272,7 @@ class TestScorePipeline:
         original_load = pipeline._load_existing_scores
         def mock_load(style):
             if style == "古风":
-                return {"墨染剑修": {"name": "墨染剑修", "score": 8.5, "comment": "很好"}}
+                return {"墨染剑修": {"name": "墨染剑修", "score": 8.5, "comment": ""}}
             return original_load(style)
         pipeline._load_existing_scores = mock_load
 
@@ -295,8 +288,8 @@ class TestScorePipeline:
         scores_file.write_text(
             "# 评分时间: 2026-01-01\n"
             "# 风格: 古风\n"
-            "墨染剑修 | 8.5 | 很好\n"
-            "镇天门 | 7.2 | 一般\n",
+            "墨染剑修 | 8.5\n"
+            "镇天门 | 7.2\n",
             encoding="utf-8",
         )
 
@@ -313,12 +306,11 @@ class TestScorePipeline:
                 line = line.strip()
                 if not line or line.startswith("#"):
                     continue
-                parts = line.split(" | ", 2)
+                parts = line.split(" | ", 1)
                 if len(parts) >= 2:
                     name = parts[0].strip()
                     score = float(parts[1].strip())
-                    comment = parts[2].strip() if len(parts) > 2 else ""
-                    scores[name] = {"name": name, "score": score, "comment": comment}
+                    scores[name] = {"name": name, "score": score, "comment": ""}
 
         assert len(scores) == 2
         assert scores["墨染剑修"]["score"] == 8.5

@@ -267,7 +267,7 @@ class QualityScorer:
 
     def _parse_response(self, content: str, expected_names: List[str]) -> List[Dict[str, Any]]:
         """
-        解析API响应内容
+        解析API响应内容（纯文本格式：昵称|分数）
 
         Args:
             content: API返回的文本内容
@@ -281,55 +281,54 @@ class QualityScorer:
         """
         # 清理内容（移除可能的markdown代码块标记）
         content = content.strip()
-        if content.startswith("```json"):
-            content = content[7:]
         if content.startswith("```"):
             content = content[3:]
         if content.endswith("```"):
             content = content[:-3]
         content = content.strip()
 
-        # 解析JSON
-        try:
-            data = json.loads(content)
-        except json.JSONDecodeError as e:
-            raise Exception(f"JSON解析失败: {e}")
-
-        if not isinstance(data, dict) or "scores" not in data:
-            raise Exception("响应格式错误，缺少'scores'字段")
-
-        scores = data["scores"]
-        if not isinstance(scores, list):
-            raise Exception("'scores'字段必须是列表")
-
-        # 校验结果
-        if len(scores) != len(expected_names):
-            logger.warning(f"评分结果数量不匹配: 期望{len(expected_names)}个，实际{len(scores)}个")
-
-        # 规范化结果
+        # 解析纯文本格式：每行一个评分，格式为 昵称|分数
         results = []
-        for item in scores:
-            if not isinstance(item, dict):
+        lines = content.split("\n")
+        
+        for line in lines:
+            line = line.strip()
+            if not line:
                 continue
-            name = item.get("name", "").strip()
-            score = item.get("score", 0.0)
-            comment = item.get("comment", "").strip()
-
+            
+            # 跳过注释和说明性文字
+            if line.startswith("#") or "昵称" in line and "分数" in line:
+                continue
+            
+            # 解析格式：昵称|分数
+            parts = line.split("|")
+            if len(parts) != 2:
+                logger.warning(f"跳过格式错误的行: {line}")
+                continue
+            
+            name = parts[0].strip()
+            score_str = parts[1].strip()
+            
             # 确保score是数字
             try:
-                score = float(score)
+                score = float(score_str)
             except (TypeError, ValueError):
-                score = 0.0
-
+                logger.warning(f"分数解析失败: {line}")
+                continue
+            
             # 限制分数范围
             score = max(0.0, min(10.0, score))
-
+            
             results.append({
                 "name": name,
                 "score": round(score, 1),
-                "comment": comment,
+                "comment": "",  # 不再使用comment字段，保留为空以兼容下游代码
             })
-
+        
+        # 校验结果
+        if len(results) != len(expected_names):
+            logger.warning(f"评分结果数量不匹配: 期望{len(expected_names)}个，实际{len(results)}个")
+        
         return results
 
     def get_token_usage(self) -> Dict[str, int]:

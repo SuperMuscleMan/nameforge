@@ -241,20 +241,19 @@ class ScorePipeline:
                     if not line or line.startswith("#"):
                         continue
 
-                    # 解析格式: 昵称 | 分数 | 评语
-                    parts = line.split(" | ", 2)
+                    # 解析格式: 昵称 | 分数
+                    parts = line.split(" | ", 1)
                     if len(parts) >= 2:
                         name = parts[0].strip()
                         try:
                             score = float(parts[1].strip())
                         except ValueError:
                             continue
-                        comment = parts[2].strip() if len(parts) > 2 else ""
 
                         scores[name] = {
                             "name": name,
                             "score": score,
-                            "comment": comment,
+                            "comment": "",
                         }
 
             logger.debug(f"[{style_name}] 已加载 {len(scores)} 条已有评分")
@@ -288,13 +287,12 @@ class ScorePipeline:
                 f.write(f"# 总数量: {len(scores)}\n")
                 f.write("#\n")
 
-                # 按分数降序写入
+                # 按分数降序写入（格式：昵称 | 分数）
                 sorted_scores = sorted(scores.values(), key=lambda x: x.get("score", 0), reverse=True)
                 for item in sorted_scores:
                     name = item.get("name", "")
                     score = item.get("score", 0.0)
-                    comment = item.get("comment", "")
-                    f.write(f"{name} | {score:.1f} | {comment}\n")
+                    f.write(f"{name} | {score:.1f}\n")
 
             logger.info(f"[{style_name}] 评分结果已保存到 {scores_file}")
         except Exception as e:

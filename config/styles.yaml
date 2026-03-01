@@ -21,7 +21,7 @@ prompts:
 
 # 生成数量（V1兼容保留）
 generation:
-  count: 5000
+  count: 50000
   style: 史诗魔幻
 
 # 词根生成配置（V2新增）
@@ -57,19 +57,19 @@ word_roots:
       - name: "萌系前缀"
         description: "修饰语，体现人设、性格或特殊状态"
         examples: ["超绝", "极速", "治愈系", "元气", "满电", "半糖", "禁止", "野生", "限定", "高能", "软糯", "微醺", "失重", "傲娇", "慵懒", "病娇", "糖心", "盐系"]
-        count_per_category: 40
+        count_per_category: 50
       - name: "幻想身份"
         description: "适配塔防/策略游戏的二次元职业或角色定位"
         examples: ["魔女", "指挥官", "应援员", "工匠", "见习生", "守卫", "特工", "执事", "主唱", "观测者", "协调员", "术士", "调律师", "炼金师", "祭司", "狩魔人", "巫师", "使徒"]
-        count_per_category: 40
+        count_per_category: 50
       - name: "核心意象"
         description: "二次元高频美感词汇，包含甜点、幻想元素、精致自然物"
         examples: ["草莓", "肉垫", "泡芙", "星砂", "铃铛", "白桃", "波波", "软泥", "樱花", "抹茶", "布丁", "流星", "晨曦", "猫咪", "羽翼", "音波", "流光", "极光", "琥珀", "糖果"]
-        count_per_category: 50
+        count_per_category: 60
       - name: "萌趣语气词"
         description: "增加互动感和ACG圈层氛围的后缀"
         examples: ["酱", "丸", "崽", "宝", "叽", "啾", "喵", "嘟", "哒", "选手", "计划", "日志", "装置", "控", "推", "厨"]
-        count_per_category: 30
+        count_per_category: 40
     东方武侠:
       - name: "武侠身份"
         description: "东方三国武侠核心身份，体现侠气与阵营感"
