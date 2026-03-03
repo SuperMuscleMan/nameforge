@@ -1,0 +1,50 @@
+# NameForge 风格配置文件
+# 采用集中式配置结构，每个风格的所有配置项都在一起
+
+# ==================== 风格定义 ====================
+styles:
+  风格名称:
+    # 基本信息
+    description: "基本信息"
+    length_min: 2
+    length_max: 6  # 稍微放宽一位，兼容“修饰+主体+后缀”的完整结构
+    charset: "中文"
+    enabled: true
+
+    # 标签系统（逻辑增强）
+    tags:
+      # 细化标签分类，增加世界观维度
+      available:
+        - "标签1"
+        - "标签2"
+        - "标签3"
+
+      # 冲突规则（优化：增加逻辑合理性）
+      conflicts:
+        - ["标签1", "标签2"]
+
+    # 词根类别定义（词性类别）
+    categories:
+      - name: "类别1"
+        description: "描述"
+        examples: ["示例1", "示例2", "示例3"]
+        count_per_category: 30
+
+      - name: "类别2"
+        description: "描述"
+        examples: ["示例1", "示例2", "示例3"]
+        count_per_category: 30
+
+    # 组合模板（优化：增加复杂语义模板）
+    templates:
+      - "{类别1}{类别2}"
+      - "{类别1:标签1}{类别2}"
+      - "{类别1}{类别2:标签2}"
+      - "{类别1:标签2}{类别2:标签3}"
+
+      # 过滤规则
+    filters:
+      forbid_duplicate_chars: true
+      forbidden_combinations:
+      - ["的", "的"]
+

@@ -36,6 +36,36 @@ prompts:
       - available_tags
       - example_json
 
+  # ==================== 单个类别词根生成Prompt ====================
+  single_category_word_root:
+    system_role: "专业的游戏昵称设计专家"
+    template: |
+      请为{style_name}风格生成{count}个高质量的'{category_name}'类别词根。
+
+      类别描述：{category_description}
+      参考示例：{examples_str}
+
+      {tags_instruction}
+
+      要求：
+      1. 避免生僻字，常用字优先
+      2. 避免词根重复
+      3. 词根长度1-3字为宜，鼓励使用双字词组增加多样性
+      4. 高质量、无攻击性、无敏感词
+
+      返回JSON数组格式，仅返回词根列表，无其他文字。
+
+      格式示例：
+      {example_output}
+    variables:
+      - style_name
+      - category_name
+      - category_description
+      - count
+      - examples_str
+      - tags_instruction
+      - example_output
+
   # ==================== 评分Prompt ====================
   scoring:
     system_role: "专业的游戏昵称质量评估专家"
